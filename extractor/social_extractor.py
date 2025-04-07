@@ -2,20 +2,28 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import WebDriverException, TimeoutException
+from selenium.webdriver.chrome.service import Service
+import os
 
 def setup_driver():
-    print("🚀 Iniciando configuración del ChromeDriver...")
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36")
+    options.add_argument("user-agent=Mozilla/5.0")
+
+    # Ruta al directorio raíz del proyecto (donde está este archivo)
+    PROYECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    # Ruta absoluta al chromedriver.exe en la raíz del proyecto
+    chromedriver_path = os.path.join(PROYECT_ROOT, "chromedriver.exe")
+    service = Service(chromedriver_path)
+
     try:
-        driver = webdriver.Chrome(options=options)
-        print("✅ ChromeDriver inicializado correctamente.")
+        driver = webdriver.Chrome(service=service, options=options)
         return driver
-    except WebDriverException as e:
+    except Exception as e:
         print(f"❌ Error inicializando ChromeDriver: {e}")
         return None
 
@@ -43,12 +51,12 @@ def extract_essential_social_links_from_url(url):
             "facebook": "facebook.com/",
             "instagram": "instagram.com/",
             "linkedin": "linkedin.com/",
-            "twitter": "twitter.com/"
+            "x": "x.com/"
         }
 
         found = {}
         for name, domain in patterns.items():
-            found_links = [u for u in urls if domain in u]
+            found_links = [u for u in urls if domain in u and len(u) < 100]
             if found_links:
                 found[name] = list(set(found_links))
 

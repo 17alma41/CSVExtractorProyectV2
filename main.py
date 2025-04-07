@@ -14,6 +14,8 @@ OUTPUT_FOLDER = os.path.abspath(r"C:\Users\Usuario\Desktop\CSVExtractorProyect\o
 # 🚀 Configuración
 DEMO_MODE = True  # True para prueba, False para procesar
 MAX_WORKERS = 5   # Ajusta según tu CPU/ChromeDriver
+EMAIL_VERIFICATION_MODE = "avanzado"  # normal | avanzado | ultra-avanzado
+
 
 # ⚙️ Configuración de columnas
 NUEVO_ORDEN = ["name",
@@ -28,7 +30,7 @@ NUEVO_ORDEN = ["name",
     "facebook",
     "instagram",
     "linkedin",
-    "twitter",
+    "x",
     "description",
     "seo_keywords",
     "workday_timing",
@@ -62,7 +64,7 @@ def ejecutar_script_limpieza():
 def procesar_sitio(row):
     website = row["website"]
     print(f"🔍 Procesando {website}")
-    emails = extract_emails_from_url(website)
+    emails = extract_emails_from_url(website, modo_verificacion=EMAIL_VERIFICATION_MODE)
     redes = extract_essential_social_links_from_url(website)
 
     print(f"🔗 Redes encontradas en {website}: {redes}")
@@ -73,7 +75,7 @@ def procesar_sitio(row):
         "facebook": ", ".join(redes.get("facebook", [])),
         "instagram": ", ".join(redes.get("instagram", [])),
         "linkedin": ", ".join(redes.get("linkedin", [])),
-        "twitter": ", ".join(redes.get("twitter", []))
+        "x": ", ".join(redes.get("x", []))
     }
 
 

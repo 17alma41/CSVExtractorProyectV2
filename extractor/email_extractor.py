@@ -24,7 +24,9 @@ def setup_driver():
         print(f"❌ Error inicializando ChromeDriver: {e}")
         return None
 
-def extract_emails_from_url(url):
+from extractor.email_verifier import verificar_existencia_email, determinar_estado
+
+def extract_emails_from_url(url, modo_verificacion='avanzado'):
     driver = setup_driver()
     if not driver:
         return []
@@ -32,13 +34,20 @@ def extract_emails_from_url(url):
     try:
         driver.set_page_load_timeout(15)
         driver.get(url)
-        time.sleep(5)  # Esperar a que cargue
+        time.sleep(5)
 
         page_text = driver.page_source
         emails = set(re.findall(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", page_text))
 
-        print(f"🔍 {url} → {emails}")
-        return list(emails)
+        emails_verificados = []
+        for email in emails:
+            resultado = verificar_existencia_email(email, modo=modo_verificacion)
+            estado = determinar_estado(resultado, modo=modo_verificacion)
+            if estado == "Válido":
+                emails_verificados.append(email)
+
+        print(f"🔍 {url} → {emails_verificados}")
+        return emails_verificados
 
     except Exception as e:
         print(f"❌ Error en {url}: {e}")
