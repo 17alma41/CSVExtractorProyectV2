@@ -1,7 +1,7 @@
 # 📬 Contacts Extractor
 
 Este proyecto permite **extraer emails y redes sociales** desde sitios web listados en archivos `.csv`. Es ideal para obtener información de contacto de empresas de forma automática. 
-Además de limpiar columnas del `.csv`.
+Además de limpiar columnas del `.csv`, verificar correos electrónicos y generar versiones demo con datos enmascarados.
 
 ---
 
@@ -14,7 +14,10 @@ Además de limpiar columnas del `.csv`.
   - LinkedIn
   - Twitter/X
 - ✅ Soporte para **múltiples archivos CSV** de entrada.
-- ✅ Modo **demo** para pruebas rápidas.
+- ✅ Verificación avanzada de **emails** (formato, dominio, MX, SMTP...)
+- ✅ Reordenamiento y renombramiento de columnas (`column_editor.py`)
+- ✅ Generación de archivos `.xlsx` personalizados
+- ✅ Modo **demo** con datos enmascarados para mostrar a clientes
 - ✅ **Paralelización** con `ThreadPoolExecutor` para acelerar el scraping.
 - ✅ Estructura modular lista para escalar y mantener.
 - 🧹 Utilidad extra para **limpiar CSVs por lotes**.
@@ -29,10 +32,16 @@ CSVExtractorProyect/
 ├── extractor/
 │   ├── email_extractor.py        # Extracción de emails con Selenium
 │   ├── social_extractor.py       # Extracción de redes sociales esenciales
+│   ├── email_verifier.py         # Verificación avanzada de emails
+│   ├── column_editor.py          # Editor para renombrar y ordenar columnas
+│   ├── generador_excel.py        # Generación de archivos .xlsx personalizados
 │   ├── limpiar_csv_lote.py       # Limpieza masiva de CSVs
 │   ├── utils.py                  # Funciones auxiliares
+├── demo_masker.py                # 🔒 Generador de archivos enmascarados tipo DEMO
 ├── inputs/                       # Archivos CSV con webs a procesar
 ├── outputs/                      # ⚠️ Crear manualmente antes de ejecutar
+├── demo_inputs/                  # Archivos CSV/XLSX reales para versión demo
+├── demo_outputs/                 # Archivos con datos enmascarados
 ├── requirements.txt              # Dependencias del proyecto
 ```
 
@@ -77,7 +86,6 @@ mkdir outputs
 ```
 
 3. Ejecuta el script:
-
 ```bash
 python main.py
 ```
@@ -86,6 +94,22 @@ python main.py
 ```
 emails_NombreDelArchivo.csv
 ```
+
+---
+
+## 🔒 Generar versión DEMO (enmascarado)
+
+1. Coloca tus archivos `.csv` o `.xlsx` en la carpeta `demo_inputs/`
+2. Ejecuta:
+```bash
+python demo_masker.py
+```
+3. Obtendrás versiones enmascaradas de esos archivos en `demo_outputs/`
+
+> Emails, teléfonos y redes sociales serán enmascarados como:
+> - `e****@gmail.com`
+> - `612 34 56 **`
+> - `facebook.com/****`
 
 ---
 
