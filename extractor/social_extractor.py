@@ -47,25 +47,52 @@ def extract_essential_social_links_from_url(url):
 
         urls = [link.get_attribute("href") for link in links if link.get_attribute("href")]
 
-        patterns = {
-            "facebook": "facebook.com/",
-            "instagram": "instagram.com/",
-            "linkedin": "linkedin.com/",
-            "x": "x.com/"
+        found = {
+            "facebook": [],
+            "instagram": [],
+            "linkedin": [],
+            "x": []
         }
 
-        found = {}
-        for name, domain in patterns.items():
-            found_links = [u for u in urls if domain in u and len(u) < 100]
-            if found_links:
-                found[name] = list(set(found_links))
+        for u in urls:
+            # Facebook: evitar enlaces de compartir, quedarse con perfiles/páginas
+            if "facebook.com/" in u and "sharer" not in u and "share" not in u and len(u) < 100:
+                found["facebook"].append(u)
 
-        if found:
-            print(f"🔗 Redes encontradas en {url}: {', '.join(found.keys())}")
+            # Instagram: evitar enlaces raros o de compartir
+            elif "instagram.com/" in u and "share" not in u and "stories" not in u and len(u) < 100:
+                found["instagram"].append(u)
+
+            # LinkedIn: perfiles o empresas, no compartir
+            elif (
+                "linkedin.com/" in u and
+                ("/in/" in u or "/company/" in u) and
+                "share" not in u and
+                "sharing" not in u and
+                len(u) < 100
+            ):
+                found["linkedin"].append(u)
+
+            # X / Twitter: evitar compartir
+            elif (
+                ("x.com/" in u or "twitter.com/" in u) and
+                "share" not in u and
+                "intent" not in u and
+                len(u) < 100
+            ):
+                found["x"].append(u)
+
+        # Eliminar duplicados
+        for key in found:
+            found[key] = list(set(found[key]))
+
+        redes_encontradas = [k for k, v in found.items() if v]
+        if redes_encontradas:
+            print(f"🔗 Redes encontradas en {url}: {', '.join(redes_encontradas)}")
         else:
             print(f"ℹ️ No se encontraron redes sociales en {url}")
 
-        return found
+        return {k: v for k, v in found.items() if v}
 
     except TimeoutException:
         print(f"⏱️ Timeout al cargar {url}")

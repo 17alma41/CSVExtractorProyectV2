@@ -7,9 +7,9 @@ from extractor.social_extractor import extract_essential_social_links_from_url
 from extractor.column_editor import procesar_csvs_en_carpeta
 
 # 📂 Rutas de carpetas (IMPORTANTE: cambiar rutas)
-EXTRACTOR_FOLDER = os.path.abspath(r"C:\Users\Usuario\Desktop\CSVExtractorProyect\extractor")
-INPUT_FOLDER = os.path.abspath(r"C:\Users\Usuario\Desktop\CSVExtractorProyect\clean_inputs")
-OUTPUT_FOLDER = os.path.abspath(r"C:\Users\Usuario\Desktop\CSVExtractorProyect\outputs")
+EXTRACTOR_FOLDER = os.path.join(os.path.dirname(__file__), "extractor")
+INPUT_FOLDER = os.path.join(os.path.dirname(__file__), "inputs")
+OUTPUT_FOLDER = os.path.join(os.path.dirname(__file__), "outputs")
 
 # 🚀 Configuración
 DEMO_MODE = True  # True para prueba, False para procesar
@@ -32,15 +32,16 @@ NUEVO_ORDEN = ["name",
     "linkedin",
     "x",
     "description",
+    "competitors",
     "seo_keywords",
     "workday_timing",
     "closed_on",
-    "competitors",
     "featured_image",
-    "link",
+    "google_link",
     "place_id"]  # Ajusta a tus columnas reales
 RENOMBRAR_COLUMNAS = {
-    "review_keywords": "seo_keywords"
+    "review_keywords": "seo_keywords",
+    "link":"google_link"
 }
 
 def ejecutar_script_limpieza():
@@ -100,7 +101,7 @@ def procesar_archivo(nombre_archivo, demo_mode=False):
             resultados = list(executor.map(procesar_sitio, [row for _, row in df.iterrows()]))
 
         df_resultado = pd.DataFrame(resultados)
-        output_path = os.path.join(OUTPUT_FOLDER, f"emails_{nombre_archivo}")
+        output_path = os.path.join(OUTPUT_FOLDER, f"{nombre_archivo}")
         df_resultado.to_csv(output_path, index=False)
         print(f"✅ Datos guardados en {output_path}")
 

@@ -52,7 +52,7 @@ def procesar_csvs_en_carpeta(
         if archivo.endswith(".csv") and not archivo.endswith("_mod.csv"):
             ruta_entrada = os.path.join(carpeta_outputs, archivo)
             nombre_base = archivo[:-4]
-            ruta_salida = os.path.join(carpeta_outputs, f"{nombre_base}_mod.csv")
+            ruta_salida = os.path.join(carpeta_outputs, f"{nombre_base}.csv")
 
             print(f"Modificando columnas de {archivo}...")
 
