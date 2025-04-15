@@ -7,24 +7,24 @@ def generar_excel(df_resultado, nombre_archivo):
         # Hoja de datos
         df_resultado.to_excel(writer, sheet_name="datos", index=False)
 
-        # Estadísticas
-        estadisticas = {
-            "Número de empresas": [len(df_resultado)],
-            "Número de emails (válidos)": [df_resultado["email"].astype(bool).sum()],
-            "Número de teléfonos": [df_resultado["phone"].astype(bool).sum()],
-            "Teléfonos fijos": [df_resultado["phone"].str.extract(r'(\d+)')[0].dropna().apply(
+        # Statistics
+        statistics = {
+            "Number of companies": [len(df_resultado)],
+            "Number of emails (valid)": [df_resultado["email"].astype(bool).sum()],
+            "Number of phone numbers": [df_resultado["phone"].astype(bool).sum()],
+            "Landline phones": [df_resultado["phone"].str.extract(r'(\d+)')[0].dropna().apply(
                 lambda x: str(x).startswith(("9", "8"))).sum()],
-            "Teléfonos móviles": [df_resultado["phone"].str.extract(r'(\d+)')[0].dropna().apply(
+            "Mobile phones": [df_resultado["phone"].str.extract(r'(\d+)')[0].dropna().apply(
                 lambda x: str(x).startswith(("6", "7"))).sum()],
         }
-        df_estadisticas = pd.DataFrame(estadisticas)
-        df_estadisticas.to_excel(writer, sheet_name="estadísticas", index=False)
+        df_statistics = pd.DataFrame(statistics)
+        df_statistics.to_excel(writer, sheet_name="statistics", index=False)
 
-        # Sectores (main_category)
+        # Sectors (main_category)
         if "main_category" in df_resultado.columns:
-            df_sectores = df_resultado["main_category"].value_counts().reset_index()
-            df_sectores.columns = ["Sector", "Número de empresas"]
-            df_sectores.to_excel(writer, sheet_name="sectores", index=False)
+            df_sectors = df_resultado["main_category"].value_counts().reset_index()
+            df_sectors.columns = ["Sector", "Number of companies"]
+            df_sectors.to_excel(writer, sheet_name="sectors", index=False)
 
         # Copyright
         copyright_text = """Aviso Legal
