@@ -142,7 +142,7 @@ def procesar_archivo(nombre_archivo):
         df_resultado.rename(columns=RENOMBRAR_COLUMNAS, inplace=True)
         df_resultado = df_resultado.reindex(columns=[col for col in NUEVO_ORDEN if col in df_resultado.columns])
 
-        df_resultado.to_csv(output_path, index=False)
+        # df_resultado.to_csv(output_path, index=False)
         print(f"✅ Datos guardados en {output_path}")
 
         try:
