@@ -27,24 +27,24 @@ def generar_excel(df_resultado, nombre_archivo):
             df_sectors.to_excel(writer, sheet_name="sectors", index=False)
 
         # Copyright
-        copyright_text = """Aviso Legal
-        © centraldecomunicacion.es. Todos los derechos reservados.
-        Registrada ante la consejería de cultura y patrimonio histórico GR-00416-2020.
+        copyright_text = """Legal Notice
+        © centraldecomunicacion.es. All rights reserved.
+        Registered with the Ministry of Culture and Historical Heritage GR-00416-2020.
         https://www.centraldecomunicacion.es/
-
-        Las fuentes de los datos son las páginas web oficiales de cada empresa.
-        No manejamos datos personales, por lo que no aplican LOPD ni RGPD.
-
-        La base de datos es intransferible y no replicable.
-        Se prohíbe la copia, distribución o publicación total o parcial sin consentimiento expreso.
-        Se tomarán medidas legales por infracciones de derechos de autor.
-
-        Para más información, consulte nuestras preguntas frecuentes:
+        
+        The data sources are the official websites of each company.
+        We do not handle personal data, therefore LOPD and GDPR do not apply.
+        
+        The database is non-transferable and non-replicable.
+        Copying, distribution, or publication, in whole or in part, without express consent is prohibited.
+        Legal action will be taken for copyright infringements.
+        
+        For more information, please refer to our FAQ:
         https://www.centraldecomunicacion.es/preguntas-frecuentes-bases-de-datos/
-
-        Queda prohibida la reproducción, distribución, comunicación pública y transformación, total o parcial,
-        de los contenidos de esta base de datos, sin la autorización expresa de centraldecomunicacion.es.
-        Los datos han sido recopilados de fuentes públicas y cumplen con la normativa vigente."""
+        
+        Reproduction, distribution, public communication, and transformation, in whole or in part,
+        of the contents of this database are prohibited without the express authorization of centraldecomunicacion.es.
+        The data has been collected from public sources and complies with current regulations."""
         df_copyright = pd.DataFrame([line.split("\n") for line in copyright_text.split("\n")])
         df_copyright.to_excel(writer, sheet_name="copyright", index=False, header=False)
 
