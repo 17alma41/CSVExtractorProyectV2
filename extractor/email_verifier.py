@@ -1,15 +1,18 @@
-import pandas as pd
 import dns.resolver
-from tqdm import tqdm
 import pyisemail
-import os
 from pathlib import Path
 import smtplib
 
 # Configuración de rutas (adaptar según necesidad)
-CARPETA_BASE = Path("C:/Users/Usuario/Desktop/CSVExtractorProyect")
-CARPETA_INPUTS = CARPETA_BASE / "inputs"
-CARPETA_OUTPUTS = CARPETA_BASE / "outputs"
+# CARPETA_BASE = Path("C:/Users/Usuario/Desktop/CSVExtractorProyect")
+
+# Ruta base del archivo actual
+BASE_DIR = Path(__file__).resolve().parent.parent  # Va dos niveles arriba (desde extractor/ hasta raíz)
+
+# Directorios de entrada y salida
+CARPETA_INPUTS = BASE_DIR / "data" / "inputs"
+CARPETA_OUTPUTS = BASE_DIR / "data" / "outputs"
+
 
 # Asegurar que existen las carpetas
 CARPETA_INPUTS.mkdir(parents=True, exist_ok=True)

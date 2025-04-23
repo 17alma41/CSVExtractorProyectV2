@@ -6,3 +6,4 @@ webdriver-manager
 XlsxWriter
 pyisemail
 dnspython
+openpyxl

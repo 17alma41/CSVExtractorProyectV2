@@ -1,2 +1,0 @@
-review_keywords:seo_keywords
-link:google_link

@@ -1,6 +1,0 @@
-is_spending_on_ads
-can_claim
-owner_name
-owner_profile_link
-is_temporarily_closed
-query

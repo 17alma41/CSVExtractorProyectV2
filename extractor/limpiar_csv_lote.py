@@ -3,15 +3,15 @@ import glob
 import os
 import sys
 import codecs
+from pathlib import Path
 
 # Configura la salida estándar para que acepte caracteres UTF-8
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach(), "replace")
 
-# 📂 Definir la carpeta base con una ruta ABSOLUTA (en Desktop)
-carpeta_base = r"C:\Users\Usuario\Desktop\CSVExtractorProyect\inputs"
-
-# 📂 Carpeta de salida donde se guardan los archivos limpios
-carpeta_salida = r"C:\Users\Usuario\Desktop\CSVExtractorProyect\clean_inputs"
+# 📂 Definir la carpeta base y de salida usando rutas relativas al proyecto
+BASE_DIR = Path(__file__).resolve().parent.parent
+carpeta_base = BASE_DIR / "data" / "inputs"
+carpeta_salida = BASE_DIR / "data" / "clean_inputs"
 os.makedirs(carpeta_salida, exist_ok=True)
 
 # 📌 Columnas a eliminar
@@ -25,7 +25,7 @@ columnas_a_eliminar = [
 ]
 
 # 🔍 Buscar todos los archivos .csv en la carpeta inputs
-archivos_encontrados = glob.glob(os.path.join(carpeta_base, "*.csv"))
+archivos_encontrados = glob.glob(str(carpeta_base / "*.csv"))
 
 # Verificar si hay archivos en la carpeta
 if not archivos_encontrados:
@@ -42,7 +42,7 @@ else:
             if columnas_encontradas:
                 df.drop(columns=columnas_encontradas, inplace=True)
 
-            archivo_salida = os.path.join(carpeta_salida, os.path.basename(archivo))
+            archivo_salida = carpeta_salida / os.path.basename(archivo)
             df.to_csv(archivo_salida, index=False, encoding="utf-8")
 
             print(f"✅ Archivo limpio guardado: {archivo_salida}")

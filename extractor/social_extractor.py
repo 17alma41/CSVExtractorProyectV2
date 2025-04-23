@@ -13,11 +13,11 @@ def setup_driver():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("user-agent=Mozilla/5.0")
 
-    # Ruta al directorio raíz del proyecto (donde está este archivo)
+    # Ruta base del proyecto (dos niveles arriba desde /extractor)
     PROYECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    # Ruta absoluta al chromedriver.exe en la raíz del proyecto
-    chromedriver_path = os.path.join(PROYECT_ROOT, "chromedriver.exe")
+    # Nueva ruta al chromedriver en la carpeta 'drivers'
+    chromedriver_path = os.path.join(PROYECT_ROOT, "drivers", "chromedriver.exe")
     service = Service(chromedriver_path)
 
     try:
