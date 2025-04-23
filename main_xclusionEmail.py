@@ -1,188 +1,117 @@
 import os
-import subprocess
-import shutil
 import pandas as pd
-import time
-import logging
-from multiprocessing import Pool, cpu_count
-from extractor.email_extractor import extract_emails_from_url
-from extractor.social_extractor import extract_essential_social_links_from_url
-from extractor.column_editor import procesar_csvs_en_carpeta
-from extractor.generador_excel import generar_excel
 
-# 📂 Rutas
-BASE_DIR = os.path.dirname(__file__)
-INPUT_FOLDER = os.path.join(BASE_DIR, "inputs")
-CLEAN_INPUT_FOLDER = os.path.join(BASE_DIR, "clean_inputs")
-OUTPUT_FOLDER = os.path.join(BASE_DIR, "outputs")
-EXTRACTOR_FOLDER = os.path.join(BASE_DIR, "extractor")
-TXT_CONFIG_DIR = os.path.join(BASE_DIR, "txt_config")
-EXCLUSIONES_FOLDER = os.path.join(TXT_CONFIG_DIR, "xclusiones")  # Ahora en txt_config/xclusiones
+# 📂 Configuración
+CLEAN_INPUT_FOLDER = "./xclusiones"
+OUTPUT_FOLDER      = "./xclusiones_outputs"
+EXCLUSIONES_FOLDER = "./txt_config/xclusiones_email"
+HOJA_DATOS         = "datos"
+HOJA_STATS         = "statistics"
 
-# 🚀 Configuración
-EMAIL_VERIFICATION_MODE = "avanzado"
-
-# 📝 Logging
-logging.basicConfig(
-    filename="procesamiento.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-# 🧩 Cargar configuraciones desde txt
-def cargar_lista_desde_txt(nombre_archivo):
-    ruta = os.path.join(TXT_CONFIG_DIR, nombre_archivo)
-    if not os.path.exists(ruta):
-        return []
-    with open(ruta, "r", encoding="utf-8") as f:
-        return [line.strip() for line in f if line.strip()]
-
-def cargar_diccionario_desde_txt(nombre_archivo):
-    ruta = os.path.join(TXT_CONFIG_DIR, nombre_archivo)
-    if not os.path.exists(ruta):
-        return {}
-    with open(ruta, "r", encoding="utf-8") as f:
-        return dict(line.strip().split(":") for line in f if ":" in line)
-
-NUEVO_ORDEN = cargar_lista_desde_txt("orden_columnas.txt")
-RENOMBRAR_COLUMNAS = cargar_diccionario_desde_txt("renombrar_columnas.txt")
-COLUMNAS_A_ELIMINAR = cargar_lista_desde_txt("columnas_a_eliminar.txt")
-
-# 🧾 Exclusiones
-def cargar_exclusiones(desde_carpeta=EXCLUSIONES_FOLDER):
+def cargar_exclusiones(carpeta):
     exclusiones = set()
-    if not os.path.exists(desde_carpeta):
-        return exclusiones
-    for archivo in os.listdir(desde_carpeta):
-        if archivo.endswith(".txt"):
-            with open(os.path.join(desde_carpeta, archivo), "r", encoding="utf-8") as f:
-                for linea in f:
-                    palabra = linea.strip().lower()
-                    if palabra:
-                        exclusiones.add(palabra)
+    for fn in os.listdir(carpeta):
+        if fn.endswith(".txt"):
+            with open(os.path.join(carpeta, fn), encoding="utf-8") as f:
+                exclusiones.update(line.strip().lower() for line in f if line.strip())
     return exclusiones
 
-def es_email_excluido(email, exclusiones):
-    if not isinstance(email, str):
-        return False
-    email = email.lower()
-    return any(palabra in email for palabra in exclusiones)
-
-# 🧹 Ejecutar limpieza
-def ejecutar_script_limpieza():
-    script_path = os.path.join(EXTRACTOR_FOLDER, "limpiar_csv_lote.py")
-    if not os.path.exists(script_path):
-        print(f"❌ No se encontró el script: {script_path}")
-        exit(1)
-    print(f"📂 Ejecutando limpieza con: {script_path}")
-    resultado = subprocess.run(["python", script_path], capture_output=True, text=True, encoding="utf-8")
-    if resultado.returncode == 0:
-        print("✅ Limpieza completada correctamente.")
-    else:
-        print(f"❌ Error en limpieza:\n{resultado.stderr}")
-
-# ✅ Mover archivos limpios
-def filtrar_y_mover_archivos_limpios():
-    print("\n🧹 Evaluando archivos tras limpieza...")
-    for archivo in os.listdir(INPUT_FOLDER):
-        if not archivo.endswith(".csv"):
-            continue
-        archivo_origen = os.path.join(INPUT_FOLDER, archivo)
-        try:
-            df = pd.read_csv(archivo_origen)
-            if "website" not in df.columns:
-                print(f"⚠️ {archivo} no contiene columna 'website'. Eliminando archivo...")
-                os.remove(archivo_origen)
-                continue
-            if any(col in df.columns for col in COLUMNAS_A_ELIMINAR):
-                print(f"⛔ {archivo} contiene columnas a eliminar. Eliminando archivo...")
-                os.remove(archivo_origen)
-                continue
-            shutil.move(archivo_origen, os.path.join(CLEAN_INPUT_FOLDER, archivo))
-            print(f"✅ {archivo} movido a clean_inputs.")
-        except Exception as e:
-            print(f"❌ Error al procesar {archivo}: {e}")
-            os.remove(archivo_origen)
-
-# 🌐 Procesar sitio web
-def procesar_sitio(row_dict):
-    website = row_dict.get("website", "")
-    print(f"🔍 Procesando {website}")
-    emails = extract_emails_from_url(website, modo_verificacion=EMAIL_VERIFICATION_MODE)
-    redes = extract_essential_social_links_from_url(website)
-    return {
-        **row_dict,
-        "email": ", ".join(emails),
-        "facebook": ", ".join(redes.get("facebook", [])),
-        "instagram": ", ".join(redes.get("instagram", [])),
-        "linkedin": ", ".join(redes.get("linkedin", [])),
-        "x": ", ".join(redes.get("x", []))
-    }
-
-# 🧠 Procesar archivo CSV
-def procesar_archivo(nombre_archivo):
-    path_entrada = os.path.join(CLEAN_INPUT_FOLDER, nombre_archivo)
-    output_path = os.path.join(OUTPUT_FOLDER, nombre_archivo)
-    if os.path.exists(output_path):
-        print(f"⏩ {nombre_archivo} ya ha sido procesado. Saltando...")
-        return
-    if os.path.getsize(path_entrada) == 0:
-        print(f"❌ El archivo {nombre_archivo} está vacío.")
-        return
-    try:
-        df = pd.read_csv(path_entrada)
-        if "website" not in df.columns:
-            print(f"❌ El archivo {nombre_archivo} no contiene columna 'website'")
-            return
-        if COLUMNAS_A_ELIMINAR:
-            df.drop(columns=[col for col in COLUMNAS_A_ELIMINAR if col in df.columns], inplace=True)
-        if modo_prueba:
-            df = df.head(20)
-        data_dicts = df.to_dict(orient="records")
-        with Pool(processes=cpu_count()) as pool:
-            resultados = pool.map(procesar_sitio, data_dicts)
-        df_resultado = pd.DataFrame(resultados)
-        exclusiones = cargar_exclusiones()
-        if "email" in df_resultado.columns:
-            original_len = len(df_resultado)
-            df_resultado = df_resultado[~df_resultado["email"].apply(lambda x: es_email_excluido(x, exclusiones))]
-            filtrados = original_len - len(df_resultado)
-            if filtrados:
-                print(f"🚫 {filtrados} emails eliminados por exclusiones.")
-        df_resultado.rename(columns=RENOMBRAR_COLUMNAS, inplace=True)
-        df_resultado = df_resultado.reindex(columns=[col for col in NUEVO_ORDEN if col in df_resultado.columns])
-        df_resultado.to_csv(output_path, index=False)
-        print(f"✅ Datos guardados en {output_path}")
-        try:
-            generar_excel(df_resultado, nombre_archivo)
-        except Exception as e:
-            print(f"❌ Error al generar Excel para {nombre_archivo}: {e}")
-    except Exception as e:
-        print(f"⚠️ Error al procesar {nombre_archivo}: {e}")
-
-# ▶️ Ejecutar todo el proceso
-if __name__ == "__main__":
-    tiempo_inicio = time.time()
-    logging.info("🔄 Iniciando proceso de extracción y procesamiento CSV.")
-    print("Selecciona el modo de ejecución:")
-    print("1 - Modo prueba (20 filas por archivo)")
-    print("2 - Modo completo (todos los datos)")
-    seleccion = input("Elige una opción (1 o 2): ").strip()
-    modo_prueba = seleccion == "1"
-    ejecutar_script_limpieza()
-    if not os.path.exists(CLEAN_INPUT_FOLDER):
-        print(f"❌ No se encontró la carpeta de entrada: {CLEAN_INPUT_FOLDER}")
-        exit(1)
-    filtrar_y_mover_archivos_limpios()
-    for archivo in os.listdir(CLEAN_INPUT_FOLDER):
-        if archivo.endswith(".csv"):
-            procesar_archivo(archivo)
-    print("\n🔧 Reordenando y renombrando columnas de los archivos generados...")
-    procesar_csvs_en_carpeta(
-        carpeta_outputs=OUTPUT_FOLDER,
-        nuevo_orden=NUEVO_ORDEN,
-        renombrar_columnas=RENOMBRAR_COLUMNAS
+def filtrar_y_contar(df: pd.DataFrame, exclusiones: set):
+    """
+    Filtra direcciones excluidas dentro de cada celda de 'email' y devuelve:
+      - df_filtrado       : DataFrame con emails limpiados
+      - total_eliminadas  : número total de direcciones borradas
+      - total_restantes   : número total de direcciones que quedan
+    """
+    # Lista original de listas de emails por fila
+    orig_listas = df["email"].fillna("").apply(
+        lambda cell: [e.strip() for e in str(cell).replace(';', ',').split(',') if e.strip()]
     )
-    duracion = time.time() - tiempo_inicio
-    logging.info(f"✅ Proceso completado en {duracion:.2f} segundos.")
-    print(f"\n⏱ Proceso finalizado en {duracion:.2f} segundos. Revisa 'procesamiento.log'.")
+    orig_counts = orig_listas.apply(len)
+
+    # Lista filtrada
+    filt_listas = orig_listas.apply(
+        lambda lst: [e for e in lst if not any(tok in e.lower() for tok in exclusiones)]
+    )
+    filt_counts = filt_listas.apply(len)
+
+    # Reconstruir columna 'email'
+    df_filtrado = df.copy()
+    df_filtrado["email"] = filt_listas.apply(
+        lambda lst: ", ".join(lst) if lst else pd.NA
+    )
+
+    total_eliminadas = (orig_counts - filt_counts).sum()
+    total_restantes  = filt_counts.sum()
+    return df_filtrado, total_eliminadas, total_restantes
+
+def procesar_archivo(path_entrada: str, exclusiones: set):
+    hojas = pd.read_excel(path_entrada, sheet_name=None)
+    resultado = {}
+
+    # 1) Procesar 'datos'
+    if HOJA_DATOS not in hojas:
+        raise RuntimeError(f"No existe la hoja '{HOJA_DATOS}' en {path_entrada}")
+    df_datos = hojas[HOJA_DATOS]
+    df_limpia, tot_elim, tot_rest = filtrar_y_contar(df_datos, exclusiones)
+    resultado[HOJA_DATOS] = df_limpia
+    print(f"✂️ '{HOJA_DATOS}': {tot_elim} direcciones eliminadas, {tot_rest} restantes")
+
+    # 2) Copiar intactas las demás (menos statistics)
+    for name, df in hojas.items():
+        if name not in (HOJA_DATOS, HOJA_STATS):
+            resultado[name] = df.copy()
+
+    # 3) Actualizar 'statistics'
+    if HOJA_STATS in hojas:
+        df_stats = hojas[HOJA_STATS].copy()
+        # Detectar columna de emails
+        col_emails = next(
+            (c for c in df_stats.columns
+             if "number" in c.lower() and "email" in c.lower()),
+            None
+        )
+        if col_emails:
+            df_stats.loc[0, col_emails] = tot_rest
+            print(f"📊 '{HOJA_STATS}' actualizado: '{col_emails}' = {tot_rest}")
+        resultado[HOJA_STATS] = df_stats
+    else:
+        print(f"⚠️ No existe la hoja '{HOJA_STATS}'")
+
+    return resultado
+
+def guardar_hojas(hojas_dict: dict, path_salida: str):
+    """
+    Guarda las hojas en el orden:
+      1. datos
+      2. statistics
+      3. todas las demás en el orden que aparezcan
+    """
+    os.makedirs(os.path.dirname(path_salida), exist_ok=True)
+    with pd.ExcelWriter(path_salida, engine="openpyxl") as writer:
+        # Primero 'datos' y 'statistics'
+        for nombre in (HOJA_DATOS, HOJA_STATS):
+            if nombre in hojas_dict:
+                hojas_dict[nombre].to_excel(writer, sheet_name=nombre, index=False)
+        # Después el resto
+        for nombre, df in hojas_dict.items():
+            if nombre not in (HOJA_DATOS, HOJA_STATS):
+                df.to_excel(writer, sheet_name=nombre, index=False)
+
+def main():
+    exclusiones = cargar_exclusiones(EXCLUSIONES_FOLDER)
+    print(f"📋 Cargadas {len(exclusiones)} palabras de exclusión\n")
+
+    for fn in os.listdir(CLEAN_INPUT_FOLDER):
+        if not fn.lower().endswith(".xlsx"):
+            continue
+        entrada = os.path.join(CLEAN_INPUT_FOLDER, fn)
+        salida  = os.path.join(OUTPUT_FOLDER, fn.replace(".xlsx", ".xlsx"))
+
+        print(f"🔄 Procesando: {fn}")
+        hojas_out = procesar_archivo(entrada, exclusiones)
+        guardar_hojas(hojas_out, salida)
+        print(f"✅ Guardado → {salida}\n")
+
+if __name__ == "__main__":
+    main()
