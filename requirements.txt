@@ -7,3 +7,4 @@ XlsxWriter
 pyisemail
 dnspython
 openpyxl
+psutil

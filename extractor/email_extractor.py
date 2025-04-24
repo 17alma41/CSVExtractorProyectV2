@@ -9,36 +9,45 @@ from selenium.webdriver.chrome.service import Service
 from extractor.email_verifier import verificar_existencia_email, determinar_estado
 
 def setup_driver():
-    # 1. Defino ruta absoluta al driver
+    # 1️⃣ Definir ruta absoluta al driver
     PROJECT_ROOT = Path(__file__).resolve().parent.parent
     chromedriver_path = PROJECT_ROOT / "drivers" / "chromedriver.exe"
     if not chromedriver_path.exists():
         raise FileNotFoundError(f"❌ No se encontró ChromeDriver en: {chromedriver_path}")
 
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("user-agent=Mozilla/5.0")
+    # 2️⃣ Configurar opciones "lightweight"
+    opts = Options()
+    opts.add_argument("--headless")
+    opts.add_argument("--disable-gpu")
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--disable-extensions")
+    opts.add_argument("--disable-software-rasterizer")
+    opts.add_argument("--blink-settings=imagesEnabled=false")
+    opts.add_argument("user-agent=Mozilla/5.0")
 
+    # 3️⃣ Iniciar servicio y driver
     service = Service(str(chromedriver_path))
-    return webdriver.Chrome(service=service, options=options)
+    driver = webdriver.Chrome(service=service, options=opts)
+
+    # 4️⃣ Ajustar timeouts
+    driver.set_page_load_timeout(15)  # abortar páginas muy lentas
+    return driver
+
 
 def extract_emails_from_url(url, modo_verificacion='avanzado'):
-    # 2. Rechazo URLs vacías o no HTTP
-    if not url or not isinstance(url, str) or not url.startswith("http"):
+    # 1️⃣ Validar URL
+    if not url or not isinstance(url, str) or not url.lower().startswith(('http://', 'https://')):
         print(f"⚠️ URL inválida, saltando: {url}")
         return []
 
     driver = setup_driver()
     try:
-        driver.set_page_load_timeout(15)
         driver.get(url)
-        time.sleep(3)  # espero a que renderice
+        time.sleep(3)  # espera mínima para renderizado
 
         html = driver.page_source
-        # 3. Extraigo todos los emails que coincidan con el patrón
+        # 2️⃣ Extraer emails con regex
         raw_emails = set(re.findall(
             r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+",
             html
