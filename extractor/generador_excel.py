@@ -37,14 +37,14 @@ def generar_excel(df_resultado, nombre_archivo):
     # --- Escritura del Excel ---
     excel_path = OUTPUT_FOLDER / f"{nombre_archivo.replace('.csv', '')}.xlsx"
     with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
-        # Hoja de datos
         df_resultado.to_excel(writer, sheet_name="data", index=False)
-        # Aplicar autofiltro en fila 1
-        workbook = writer.book
         worksheet = writer.sheets["data"]
+
+        # Aplicar autofiltro solo si hay columnas
         last_col = len(df_resultado.columns)
-        last_letter = chr(ord('A') + last_col - 1)
-        worksheet.autofilter(f"A1:{last_letter}1")
+        if last_col > 0:
+            last_letter = chr(ord('A') + last_col - 1)
+            worksheet.autofilter(f"A1:{last_letter}1")
 
         # Hoja de estadísticas
         statistics = {
