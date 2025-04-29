@@ -71,7 +71,7 @@ def generar_excel(df_resultado, nombre_archivo):
         copyright_text = """Legal Notice
 © companiesdata.cloud All rights reserved.
 Registered with the Ministry of Culture and Historical Heritage GR-00416-2020.
-https://companiesdata.cloud/
+https://companiesdata.cloud/ and https://www.centraldecomunicacion.es/
 
 The data sources are the official websites of each company.
 We do not handle personal data, therefore LOPD and GDPR do not apply.
@@ -81,10 +81,10 @@ Copying, distribution, or publication, in whole or in part, without express cons
 Legal action will be taken for copyright infringements.
 
 For more information, please refer to our FAQ:
-https://companiesdata.cloud/faq
+https://companiesdata.cloud/faq and https://www.centraldecomunicacion.es/preguntas-frecuentes-bases-de-datos/
 
 Reproduction, distribution, public communication, and transformation, in whole or in part,
-of the contents of this database are prohibited without the express authorization of companiesdata.cloud
+of the contents of this database are prohibited without the express authorization of companiesdata.cloud and centraldecomunicacion.es
 The data has been collected from public sources and complies with current regulations."""
         df_copyright = pd.DataFrame(
             [line.split("\n") for line in copyright_text.split("\n")]
