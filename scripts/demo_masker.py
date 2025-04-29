@@ -7,7 +7,10 @@ def mask_email(email):
     if pd.isna(email) or "@" not in email:
         return email
     name, domain = email.split("@", 1)
+    if not name:  # Si name está vacío
+        return email
     return f"{name[0]}{'*' * (len(name)-1)}@{domain}"
+
 
 def mask_phone(phone):
     if pd.isna(phone) or not isinstance(phone, str):
