@@ -10,6 +10,7 @@
 - 🌐 **Scraping de redes sociales**: Facebook, Instagram, LinkedIn, X/Twitter.
 - 📧 **Verificación avanzada** de emails: formato, dominio, MX, SPF, DKIM, SMTP.
 - ✂️ **Exclusión de emails** con nombres/apellidos o palabras clave desde archivos `.txt`.
+- 📊 **Captura de imágenes** de las estadísitcas de las tablas del `.xlxs`.
 - 🛠️ **Editor de columnas** para ordenar, renombrar o eliminar columnas.
 - 📊 **Generación de Excel (.xlsx)** con datos organizados.
 - 🔒 **Modo demo** con enmascaramiento de datos sensibles.
@@ -24,7 +25,8 @@
 ```
 CSVExtractorProyect/
 ├── scripts/
-│   ├── main.py                        # Script principal
+│   ├── benchmark_scraping.py         # Script de comprobación de configuración de núcleos
+│   ├── main.py                       # Script principal
 │   ├── main_xclusionEmail.py         # Variante con exclusión de emails
 │   └── demo_masker.py                # Generador enmascarado para modo demo
 ├── extractor/
@@ -105,6 +107,10 @@ Puedes excluir emails que contengan palabras como `"info"`, `"admin"`, nombres c
 
 - Edita los archivos en `xclusiones_email/`
 - Ejecuta `scripts/main_xclusionEmail.py` para aplicar esta lógica
+
+### 📊 Captura de imágenes
+
+Al ejecutar el script anterior, el programa crea imágenes respecto a la estadísiticas del `.xlxs`
 
 
 
