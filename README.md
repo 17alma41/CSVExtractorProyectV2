@@ -108,6 +108,16 @@ Puedes excluir emails que contengan palabras como `"info"`, `"admin"`, nombres c
 - Edita los archivos en `xclusiones_email/`
 - Ejecuta `scripts/main_xclusionEmail.py` para aplicar esta lógica
 
+## Sacar información para FicherosDatos
+
+Este script recorre carpetas por país dentro de una ruta en red, localiza archivos Excel, extrae métricas
+específicas desde la hoja "statistics" de cada archivo, asocia hasta tres imágenes JPG disponibles, y genera un
+archivo resumen en Excel con toda esa información.
+
+- Ejecutalo `scripts/ficheros_datos.py` para aplicar este codigo y obtener los datos en un excel
+- Obtendras los resultados en `data/outputs` para poder observarlo.
+
+
 ### 📊 Captura de imágenes
 
 Al ejecutar el script anterior, el programa crea imágenes respecto a la estadísiticas del `.xlxs`
