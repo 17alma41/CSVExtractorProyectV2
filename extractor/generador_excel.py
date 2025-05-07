@@ -43,10 +43,11 @@ def generar_excel(df_resultado, nombre_archivo):
     excel_path = OUTPUT_FOLDER / f"{nombre_archivo.replace('.csv', '')}.xlsx"
     # Deshabilitar conversión automática de cadenas a URLs
     with pd.ExcelWriter(
-        excel_path,
-        engine="xlsxwriter",
-        options={"strings_to_urls": False}
+            excel_path,
+            engine="xlsxwriter",
+            engine_kwargs={"options": {"strings_to_urls": False}}
     ) as writer:
+
         # Hoja de datos
         df_resultado.to_excel(writer, sheet_name="data", index=False)
         worksheet = writer.sheets["data"]
