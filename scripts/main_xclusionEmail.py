@@ -11,8 +11,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 📂 Configuración
-CLEAN_INPUT_FOLDER = BASE_DIR / "data" / "xclusion" /"xclusiones"
-OUTPUT_FOLDER      = BASE_DIR / "data" / "xclusion" /"xclusiones_outputs"
+CLEAN_INPUT_FOLDER = BASE_DIR / "data" / "xclusion" / "xclusiones"
+OUTPUT_FOLDER      = BASE_DIR / "data" / "xclusion" / "xclusiones_outputs"
 EXCLUSIONES_FOLDER = BASE_DIR / "config" / "txt_config" / "xclusiones_email"
 HOJA_DATA = "data"
 HOJA_STATS = "statistics"
@@ -81,12 +81,17 @@ def guardar_tabla_como_imagen(df, path_imagen, title=None, columns=None):
         df = df.iloc[:, :max_columns]
     df = df.head(max_rows)
 
-    df = df.copy().astype(str).applymap(lambda x: x[:max_chars] + "…" if len(x) > max_chars else x)
+    # Usamos map en vez de applymap para compatibilidad con pandas 2.x
+    df = df.copy().astype(str).apply(
+        lambda col: col.map(lambda x: x[:max_chars] + "…" if len(x) > max_chars else x)
+    )
 
     fig, ax = plt.subplots(figsize=(IMAGE_SIZE[0] / 100, IMAGE_SIZE[1] / 100))
     ax.axis("off")
 
-    is_sectors = any("sector" in c.lower() for c in df.columns) and any("number" in c.lower() or "count" in c.lower() for c in df.columns)
+    is_sectors = any("sector" in c.lower() for c in df.columns) and any(
+        tok in c.lower() for tok in ("number", "count") for c in df.columns
+    )
 
     # Definir anchos de columna
     col_widths = []
@@ -199,13 +204,24 @@ def main():
         insertar_imagen_en_excel(salida, graph_path)
 
         # 📸 Tabla data (primeros 20)
-        guardar_tabla_como_imagen(df_data.head(20), os.path.join(OUTPUT_FOLDER, fn.replace(".xlsx", "_data.jpg")), title="Data")
+        guardar_tabla_como_imagen(
+            df_data.head(20),
+            os.path.join(OUTPUT_FOLDER, fn.replace(".xlsx", "_data.jpg")),
+            title="Data"
+        )
 
         # 📸 Sector (sector + número de empresas ordenado)
         df_sectors = hojas_out.get("sectors")
         if df_sectors is not None:
+            # ➊ Columnas que incluyan 'sector'
             sector_cols = [col for col in df_sectors.columns if "sector" in col.lower()]
-            company_cols = [col for col in df_sectors.columns if "number" in col.lower()]
+            # ➋ Columnas que incluyan 'number' o 'count'
+            company_cols = [col for col in df_sectors.columns if any(tok in col.lower() for tok in ("number", "count"))]
+
+            # ➌ Fallback si solo hay dos columnas
+            if not sector_cols and len(df_sectors.columns) == 2:
+                sector_cols = [df_sectors.columns[0]]
+                company_cols = [df_sectors.columns[1]]
 
             if sector_cols and company_cols:
                 df_sector_imagen = df_sectors[[sector_cols[0], company_cols[0]]].copy()
