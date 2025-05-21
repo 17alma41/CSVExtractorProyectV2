@@ -79,19 +79,24 @@ def generar_excel(df_resultado, nombre_archivo):
 
         # Copyright
         copyright_text = (
-            "Legal Notice\n"
-            "© companiesdata.cloud All rights reserved.\n"
-            "Registered with the Ministry of Culture and Historical Heritage GR-00416-2020.\n"
-            "https://companiesdata.cloud/\n\n"
-            "The data sources are the official websites of each company.\n"
-            "We do not handle personal data, therefore LOPD and GDPR do not apply.\n\n"
-            "The database is non-transferable and non-replicable.\n"
-            "Copying, distribution, or publication, in whole or in part, without express consent is prohibited.\n"
-            "Legal action will be taken for copyright infringements.\n\n"
-            "For more information, please refer to our FAQ: https://companiesdata.cloud/faq\n\n"
-            "Reproduction, distribution, public communication, and transformation, in whole or in part,\n"
-            "of the contents of this database are prohibited without the express authorization of companiesdata.cloud.\n"
-            "The data has been collected from public sources and complies with current regulations."
+            "Legal Notice
+            © companiesdata.cloud All rights reserved.
+            Registered with the Ministry of Culture and Historical Heritage GR-00416-2020.
+            https://companiesdata.cloud/ and https://www.centraldecomunicacion.es/
+        
+            The data sources are the official websites of each company.
+            We do not handle personal data, therefore LOPD and GDPR do not apply.
+        
+            The database is non-transferable and non-replicable.
+            Copying, distribution, or publication, in whole or in part, without express consent is prohibited.
+            Legal action will be taken for copyright infringements.
+        
+            For more information, please refer to our FAQ:
+            https://companiesdata.cloud/faq and https://www.centraldecomunicacion.es/preguntas-frecuentes-bases-de-datos/
+        
+            Reproduction, distribution, public communication, and transformation, in whole or in part,
+            of the contents of this database are prohibited without the express authorization of companiesdata.cloud and centraldecomunicacion.es
+            The data has been collected from public sources and complies with current regulations."
         )
         df_copyright = pd.DataFrame(
             [[line] for line in copyright_text.split("\n")]
