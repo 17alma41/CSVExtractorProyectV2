@@ -1,10 +1,10 @@
 import pandas as pd
 from pathlib import Path
 from urllib.parse import urlparse
+from src.settings import OUTPUTS_DIR
 
 # Ruta base: suponiendo que este archivo está en extractor/
 BASE_DIR = Path(__file__).resolve().parent.parent
-OUTPUT_FOLDER = BASE_DIR / "data" / "outputs"
 
 def generar_excel(df_resultado, nombre_archivo):
     """
@@ -40,7 +40,7 @@ def generar_excel(df_resultado, nombre_archivo):
             num_socials += counts
 
     # --- Escritura del Excel ---
-    excel_path = OUTPUT_FOLDER / f"{nombre_archivo.replace('.csv', '')}.xlsx"
+    excel_path = OUTPUTS_DIR / f"{nombre_archivo.replace('.csv', '')}.xlsx"
     # Deshabilitar conversión automática de cadenas a URLs
     with pd.ExcelWriter(
             excel_path,

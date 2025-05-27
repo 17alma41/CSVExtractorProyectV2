@@ -8,3 +8,5 @@ pyisemail
 dnspython
 openpyxl
 psutil
+matplotlib
+Pillow

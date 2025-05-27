@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from src.utils.status_manager import load_status, update_status, is_stage_done, log_error
 
 def modificar_columnas_csv(
     ruta_entrada: str,
@@ -40,7 +41,10 @@ def modificar_columnas_csv(
 def procesar_csvs_en_carpeta(
     carpeta_outputs: str = "outputs",
     nuevo_orden: list = None,
-    renombrar_columnas: dict = None
+    renombrar_columnas: dict = None,
+    overwrite: bool = False,
+    test_mode: bool = False,
+    resume: bool = False
 ):
     """
     Procesa todos los CSV en la carpeta:
@@ -48,8 +52,14 @@ def procesar_csvs_en_carpeta(
     - NO crea columnas vacías.
     - NO elimina los originales.
     """
-    for archivo in os.listdir(carpeta_outputs):
-        if archivo.endswith(".csv") and not archivo.endswith("_mod.csv"):
+    import os
+    from src.settings import INPUTS_DIR
+    archivos = [f for f in os.listdir(INPUTS_DIR) if f.lower().endswith('.csv')]
+    for archivo in archivos:
+        try:
+            if not overwrite and is_stage_done(archivo, 'cleaned'):
+                print(f"[SKIP] {archivo} ya limpiado.")
+                continue
             ruta_entrada = os.path.join(carpeta_outputs, archivo)
             nombre_base = archivo[:-4]
             ruta_salida = os.path.join(carpeta_outputs, f"{nombre_base}.csv")
@@ -62,3 +72,6 @@ def procesar_csvs_en_carpeta(
                 nuevo_orden=nuevo_orden,
                 renombrar_columnas=renombrar_columnas
             )
+            update_status(archivo, 'cleaned', True)
+        except Exception as e:
+            log_error(archivo, 'cleaning', '', str(e))
