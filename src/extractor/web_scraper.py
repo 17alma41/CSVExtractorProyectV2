@@ -144,9 +144,6 @@ def run_extraction(overwrite=False, test_mode=False, max_workers=None, wait_time
     # Determinar número de workers
     workers = max_workers if max_workers else get_optimal_workers()
     print(f"[SCRAPER] Usando {workers} hilos (threads) para scraping.")
-    # Ejecutar limpieza previa
-    from src.extractor.limpiar_csv_lote import main as limpiar_main
-    limpiar_main()
     # Eliminar CSVs originales ya limpiados
     for fname in os.listdir(INPUTS_DIR):
         if fname.lower().endswith('.csv'):
