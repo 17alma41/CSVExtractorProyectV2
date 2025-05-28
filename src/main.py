@@ -27,8 +27,18 @@ def run_all(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10,
         test_mode=test_mode
     )
     print("[2/4] Ejecutando scraping web...")
-    run_extraction(overwrite=overwrite, test_mode=test_mode, max_workers=max_workers, wait_timeout=wait_timeout, resume=resume)
-    # No eliminar archivos de inputs
+    # Scraping: clean_inputs -> outputs
+    archivos = [f for f in os.listdir(CLEAN_INPUTS_DIR) if f.lower().endswith('.csv')]
+    for nombre in archivos:
+        print(f"▶️ Scraping: {nombre}")
+        run_extraction(
+            overwrite=overwrite,
+            test_mode=test_mode,
+            max_workers=max_workers,
+            wait_timeout=wait_timeout,
+            resume=resume,
+            single_file=nombre  # Solo este archivo
+        )
     print("[3/4] Aplicando exclusiones y generando estadísticas...")
     run_filter(overwrite=overwrite, test_mode=test_mode, resume=resume)
     print("[4/4] Generando archivos demo enmascarados...")
