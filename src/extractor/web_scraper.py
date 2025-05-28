@@ -135,31 +135,21 @@ def procesar_archivo(nombre_archivo, modo_prueba=False, max_workers=None, wait_t
     generar_excel(df_res, nombre_archivo)
     update_status(nombre_archivo, 'scraping_index', 0)  # Reset index
 
-def run_extraction(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10, resume=False):
+def run_extraction(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10, resume=False, single_file=None):
     """
     Ejecuta el proceso de extracción de datos web.
+    Si single_file está definido, solo procesa ese archivo.
     """
     import time
     inicio = time.time()
-    # Determinar número de workers
     workers = max_workers if max_workers else get_optimal_workers()
     print(f"[SCRAPER] Usando {workers} hilos (threads) para scraping.")
-    # Procesar clean_inputs
     if not CLEAN_INPUTS_DIR.is_dir():
         print(f"❌ No existe clean_inputs.")
         return
-    from src.extractor.column_editor import procesar_csvs_en_carpeta
-    procesar_csvs_en_carpeta(
-        carpeta_outputs=str(CLEAN_INPUTS_DIR),
-        nuevo_orden=None,
-        renombrar_columnas=None,
-        overwrite=overwrite,
-        test_mode=test_mode
-    )
-    archivos = [f for f in os.listdir(CLEAN_INPUTS_DIR) if f.lower().endswith('.csv')]
+    archivos = [single_file] if single_file else [f for f in os.listdir(CLEAN_INPUTS_DIR) if f.lower().endswith('.csv')]
     for nombre in archivos:
         try:
-            # Control de reanudación por archivo
             if not overwrite and is_stage_done(nombre, 'scraped'):
                 print(f"[SKIP] {nombre} ya scrapeado.")
                 continue
