@@ -20,7 +20,27 @@ def main():
     parser.add_argument('--test', action='store_true', help='Modo test: solo 20 filas por archivo')
     parser.add_argument('--overwrite', action='store_true', help='Sobrescribir archivos ya procesados')
     parser.add_argument('--resume', action='store_true', help='Reanudar etapas incompletas')
+    parser.add_argument('--clean-logs', action='store_true', help='Borra todos los archivos de la carpeta logs/')
     args = parser.parse_args()
+
+    if args.clean_logs:
+        import glob
+        import shutil
+        import pathlib
+        logs_dir = pathlib.Path('logs')
+        if logs_dir.exists():
+            for f in logs_dir.glob('*'):
+                try:
+                    if f.is_file():
+                        f.unlink()
+                    elif f.is_dir():
+                        shutil.rmtree(f)
+                except Exception as e:
+                    print(f"No se pudo borrar {f}: {e}")
+            print("Carpeta logs/ limpiada.")
+        else:
+            print("La carpeta logs/ no existe.")
+        return
 
     # Si no se pasa ningún flag, mostrar ayuda
     if not any([args.clean, args.scrap, args.exclude, args.mask, args.all]):
