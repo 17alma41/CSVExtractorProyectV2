@@ -16,7 +16,6 @@ def run_all(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10,
     Ejecuta el flujo completo: limpieza → scraping → exclusión → demo.
     """
     from src.extractor.column_editor import procesar_csvs_en_carpeta
-    import shutil
     import os
     from src.settings import INPUTS_DIR, CLEAN_INPUTS_DIR, OUTPUTS_DIR, XCLUSION_OUTPUTS_DIR, DEMO_OUTPUTS_DIR
     print("[1/4] Limpiando y normalizando archivos de entrada...")
@@ -29,8 +28,7 @@ def run_all(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10,
     )
     print("[2/4] Ejecutando scraping web...")
     run_extraction(overwrite=overwrite, test_mode=test_mode, max_workers=max_workers, wait_timeout=wait_timeout, resume=resume)
-    # NO eliminar archivos de inputs automáticamente
-    # NO copiar outputs a exclusions_inputs ni exclusions_outputs a demo_inputs
+    # No eliminar archivos de inputs
     print("[3/4] Aplicando exclusiones y generando estadísticas...")
     run_filter(overwrite=overwrite, test_mode=test_mode, resume=resume)
     print("[4/4] Generando archivos demo enmascarados...")
