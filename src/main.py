@@ -11,7 +11,7 @@ import argparse
 from pathlib import Path
 
 
-def run_all(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10):
+def run_all(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10, resume=False):
     """
     Ejecuta el flujo completo: limpieza → scraping → exclusión → demo.
     """
