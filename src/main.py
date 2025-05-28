@@ -28,36 +28,13 @@ def run_all(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10,
         test_mode=test_mode
     )
     print("[2/4] Ejecutando scraping web...")
-    run_extraction(overwrite=overwrite, test_mode=test_mode, max_workers=max_workers, wait_timeout=wait_timeout)
-    # Copiar outputs a exclusions_inputs para el siguiente paso
-    exclusions_inputs = os.path.join(os.path.dirname(XCLUSION_OUTPUTS_DIR), 'exclusions_inputs')
-    if not os.path.exists(exclusions_inputs):
-        os.makedirs(exclusions_inputs)
-    for file in os.listdir(OUTPUTS_DIR):
-        src = os.path.join(OUTPUTS_DIR, file)
-        dst = os.path.join(exclusions_inputs, file)
-        if overwrite or not os.path.exists(dst):
-            shutil.copy2(src, dst)
+    run_extraction(overwrite=overwrite, test_mode=test_mode, max_workers=max_workers, wait_timeout=wait_timeout, resume=resume)
+    # NO eliminar archivos de inputs automáticamente
+    # NO copiar outputs a exclusions_inputs ni exclusions_outputs a demo_inputs
     print("[3/4] Aplicando exclusiones y generando estadísticas...")
-    from src.cleaner import exclusion_filter
-    old_xclusion_inputs = exclusion_filter.XCLUSION_INPUTS_DIR
-    exclusion_filter.XCLUSION_INPUTS_DIR = Path(exclusions_inputs)
-    run_filter(overwrite=overwrite, test_mode=test_mode)
-    exclusion_filter.XCLUSION_INPUTS_DIR = old_xclusion_inputs
-    demo_inputs = os.path.join(os.path.dirname(DEMO_OUTPUTS_DIR), 'demo_inputs')
-    if not os.path.exists(demo_inputs):
-        os.makedirs(demo_inputs)
-    for file in os.listdir(XCLUSION_OUTPUTS_DIR):
-        src = os.path.join(XCLUSION_OUTPUTS_DIR, file)
-        dst = os.path.join(demo_inputs, file)
-        if overwrite or not os.path.exists(dst):
-            shutil.copy2(src, dst)
+    run_filter(overwrite=overwrite, test_mode=test_mode, resume=resume)
     print("[4/4] Generando archivos demo enmascarados...")
-    from src.demo import demo_generator
-    old_demo_inputs = demo_generator.DEMO_INPUTS_DIR
-    demo_generator.DEMO_INPUTS_DIR = Path(demo_inputs)
-    run_demo(overwrite=overwrite, test_mode=test_mode)
-    demo_generator.DEMO_INPUTS_DIR = old_demo_inputs
+    run_demo(overwrite=overwrite, test_mode=test_mode, resume=resume)
     print("✅ Flujo completo finalizado.")
 
 
