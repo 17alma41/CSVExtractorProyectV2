@@ -3,6 +3,7 @@ from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from src.settings import BASE_DIR
 
 
 def setup_driver(
@@ -32,8 +33,9 @@ def setup_driver(
     if not chromedriver_path:
         # Elegir ejecutable según SO (Windows vs Linux/macOS)
         driver_name = "chromedriver.exe" if platform.system().lower().startswith("win") else "chromedriver"
-        chromedriver_path = project_root / "drivers" / driver_name
+        chromedriver_path = BASE_DIR / "drivers" / "chromedriver.exe"
     chromedriver_path = Path(chromedriver_path)
+    print(f"[DEBUG] chromedriver_path usado: {chromedriver_path}")
     if not chromedriver_path.exists():
         raise FileNotFoundError(f"❌ No se encontró ChromeDriver en: {chromedriver_path}")
 

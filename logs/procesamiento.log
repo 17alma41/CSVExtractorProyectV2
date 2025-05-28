@@ -1,0 +1,33 @@
+2025-05-28 10:35:54,645 - ERROR - Error procesando sitio https://www.python.org: '_thread._local' object has no attribute 'driver'
+2025-05-28 10:35:54,659 - ERROR - Error procesando sitio https://www.wikipedia.org: '_thread._local' object has no attribute 'driver'
+2025-05-28 10:35:54,721 - ERROR - Error procesando sitio https://www.github.com: '_thread._local' object has no attribute 'driver'
+2025-05-28 10:37:43,349 - CRITICAL - Exception in initializer:
+Traceback (most recent call last):
+  File "C:\Users\SERVIDOR3016\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\thread.py", line 73, in _worker
+    initializer(*initargs)
+    ~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\SERVIDOR3016\Desktop\test-software\CSVExtractorProyectV2\src\extractor\web_scraper.py", line 34, in _init_thread_driver
+    drv = _shared_setup_driver()
+  File "C:\Users\SERVIDOR3016\Desktop\test-software\CSVExtractorProyectV2\src\extractor\utils.py", line 38, in setup_driver
+    raise FileNotFoundError(f"\u274c No se encontró ChromeDriver en: {chromedriver_path}")
+FileNotFoundError: \u274c No se encontró ChromeDriver en: C:\Users\SERVIDOR3016\Desktop\test-software\CSVExtractorProyectV2\src\drivers\chromedriver.exe
+2025-05-28 10:37:43,350 - CRITICAL - Exception in initializer:
+Traceback (most recent call last):
+  File "C:\Users\SERVIDOR3016\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\thread.py", line 73, in _worker
+    initializer(*initargs)
+    ~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\SERVIDOR3016\Desktop\test-software\CSVExtractorProyectV2\src\extractor\web_scraper.py", line 34, in _init_thread_driver
+    drv = _shared_setup_driver()
+  File "C:\Users\SERVIDOR3016\Desktop\test-software\CSVExtractorProyectV2\src\extractor\utils.py", line 38, in setup_driver
+    raise FileNotFoundError(f"\u274c No se encontró ChromeDriver en: {chromedriver_path}")
+FileNotFoundError: \u274c No se encontró ChromeDriver en: C:\Users\SERVIDOR3016\Desktop\test-software\CSVExtractorProyectV2\src\drivers\chromedriver.exe
+2025-05-28 10:37:43,351 - CRITICAL - Exception in initializer:
+Traceback (most recent call last):
+  File "C:\Users\SERVIDOR3016\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\thread.py", line 73, in _worker
+    initializer(*initargs)
+    ~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\SERVIDOR3016\Desktop\test-software\CSVExtractorProyectV2\src\extractor\web_scraper.py", line 34, in _init_thread_driver
+    drv = _shared_setup_driver()
+  File "C:\Users\SERVIDOR3016\Desktop\test-software\CSVExtractorProyectV2\src\extractor\utils.py", line 38, in setup_driver
+    raise FileNotFoundError(f"\u274c No se encontró ChromeDriver en: {chromedriver_path}")
+FileNotFoundError: \u274c No se encontró ChromeDriver en: C:\Users\SERVIDOR3016\Desktop\test-software\CSVExtractorProyectV2\src\drivers\chromedriver.exe

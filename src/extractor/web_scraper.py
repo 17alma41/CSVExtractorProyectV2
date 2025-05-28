@@ -7,13 +7,13 @@ import sys
 import time
 import logging
 import threading
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import psutil
 import multiprocessing
-from extractor.utils import setup_driver as _shared_setup_driver
-from extractor.email_extractor import extract_emails_from_url
-from extractor.social_extractor import extract_essential_social_links_from_url
+from .utils import setup_driver as _shared_setup_driver
+from .email_extractor import extract_emails_from_url
+from .social_extractor import extract_essential_social_links_from_url
 from src.settings import (
     BASE_DIR, INPUTS_DIR, OUTPUTS_DIR, CLEAN_INPUTS_DIR, TXT_CONFIG_DIR, LOGS_DIR, HOJA_DATA
 )
@@ -104,7 +104,6 @@ def procesar_archivo(nombre_archivo, modo_prueba=False, max_workers=None, wait_t
     # Reanudación por índice
     start_idx = get_next_scraping_index(nombre_archivo) if resume else 0
     resultados = []
-    # Reintentos y cierre seguro de drivers
     def process_with_retry(row, idx, retries=2):
         for attempt in range(retries):
             try:
@@ -117,22 +116,31 @@ def procesar_archivo(nombre_archivo, modo_prueba=False, max_workers=None, wait_t
         return {**row, 'email':'', 'facebook':'', 'instagram':'', 'linkedin':'', 'x':''}
     workers = max_workers if max_workers else get_optimal_workers()
     with ThreadPoolExecutor(max_workers=workers, initializer=_init_thread_driver) as executor:
-        for idx, row in enumerate(rows[start_idx:], start=start_idx):
-            resultados.append(process_with_retry(row, idx))
+        futures = {executor.submit(process_with_retry, row, idx): idx for idx, row in enumerate(rows[start_idx:], start=start_idx)}
+        for future in as_completed(futures):
+            try:
+                resultados.append(future.result())
+            except Exception as e:
+                print(f"[ERROR] Excepción en scraping: {e}")
     for drv in DRIVERS:
         try:
             drv.quit()
         except Exception:
             pass
     df_res = pd.DataFrame(resultados)
+    print(f"[DEBUG] DataFrame de resultados generado con {len(df_res)} filas.")
     if RENOMBRAR_COLUMNAS:
         df_res.rename(columns=RENOMBRAR_COLUMNAS, inplace=True)
     if NUEVO_ORDEN:
         cols_validas = [c for c in NUEVO_ORDEN if c in df_res.columns]
         if cols_validas:
             df_res = df_res.reindex(columns=cols_validas)
-    from extractor.generador_excel import generar_excel
-    generar_excel(df_res, nombre_archivo)
+    if not df_res.empty:
+        from .generador_excel import generar_excel
+        print(f"[DEBUG] Llamando a generar_excel para {nombre_archivo}")
+        generar_excel(df_res, nombre_archivo)
+    else:
+        print(f"[WARNING] DataFrame vacío, no se genera archivo para {nombre_archivo}")
     update_status(nombre_archivo, 'scraping_index', 0)  # Reset index
 
 def run_extraction(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10, resume=False, single_file=None):
@@ -163,3 +171,7 @@ def run_extraction(overwrite=False, test_mode=False, max_workers=None, wait_time
             log_error(nombre, 'scraping', '', str(e))
     duracion = time.time() - inicio
     print(f"✅ Fin en {duracion:.2f}s.")
+
+if __name__ == "__main__":
+    print("[INFO] Ejecutando scraping sobre archivos en clean_inputs...")
+    run_extraction(overwrite=True, test_mode=True)

@@ -4,8 +4,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-from extractor.utils import setup_driver
-from extractor.email_verifier import verificar_existencia_email, determinar_estado
+from .utils import setup_driver
+from .email_verifier import verificar_existencia_email, determinar_estado
 
 
 def extract_emails_from_url(

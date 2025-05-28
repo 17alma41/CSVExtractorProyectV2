@@ -143,7 +143,7 @@ def run_filter(overwrite=False, test_mode=False, resume=False):
     Ejecuta el filtrado de emails según exclusiones.
     """
     exclusiones = cargar_exclusiones()
-    print(f"📋 Cargadas {len(exclusiones)} palabras de exclusión\n")
+    print(f"Cargadas {len(exclusiones)} palabras de exclusión\n")
     for fn in os.listdir(XCLUSION_INPUTS_DIR):
         try:
             if not overwrite and is_stage_done(fn, 'excluded'):
@@ -193,7 +193,7 @@ def run_filter(overwrite=False, test_mode=False, resume=False):
                     print("⚠️ No se encontraron columnas adecuadas en la hoja 'sectors'")
             else:
                 print("⚠️ Hoja 'sectors' no encontrada")
-            print(f"✅ Guardado → {salida}\n")
+            print(f"Guardado → {salida}\n")
             update_status(fn, 'excluded', True)
         except Exception as e:
             log_error(fn, 'exclusion', '', str(e))

@@ -4,7 +4,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
-from extractor.utils import setup_driver
+from .utils import setup_driver
 
 
 def extract_essential_social_links_from_url(
