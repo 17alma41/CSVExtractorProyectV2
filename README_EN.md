@@ -58,7 +58,7 @@ CSVExtractorProyectV2/
 1. Add your `.csv` files to the `data/inputs` folder
 2. Run the main script:
   ```bash
-    python src/main.py --all
+    python -m src.main --all
   ```
 4. The full flow will follow: `extraction -> filtering -> demos`
 5. Each result will be stored in its corresponding folder: `data/clean_inputs -> data/outputs -> data/exclusions_outputs -> data/demo_outputs`
@@ -70,7 +70,7 @@ CSVExtractorProyectV2/
 ### Fully automated flow
 
 ```powershell
-python src/main.py --all
+python -m src.main --all
 ```
 
 ### Main options
@@ -86,7 +86,7 @@ python src/main.py --all
 
 ### Advanced usage example
 ```powershell
-python src/main.py --all --overwrite --test --wait-timeout 15
+python -m src.main.py --all --overwrite --test --wait-timeout 15
 ```
 
 ---
@@ -137,7 +137,7 @@ This script scans country folders within a network path, locates Excel files, ex
 - **Can I resume if the process is interrupted?**
   Yes, run the same command with `--resume` and the system will continue where it left off.
 - **How do I clean the logs and state to start from scratch?**
-  Run: `python src/main.py --clean-logs`
+  Run: `python -m src.main.py --clean-logs`
 - **Can I customize the scraping?**
   Yes, adjust the parameters via CLI or edit the configuration in `/config/txt_config/`.
 

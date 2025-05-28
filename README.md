@@ -58,7 +58,7 @@ CSVExtractorProyectV2/
 1. Agrega los archivos ``.csv`` a la carpeta ``data/inputs``
 2. Ejecuta el script principal:
   ```bash
-    python src/main.py --all
+    python -m src.main --all
   ```
 4. Seguira el flujo completo ``extracción -> filtrado -> demos``
 5. Cada resultado se irá almacenando en su carpeta correspondiente `data/clean_inputs -> data/outputs -> data/exclusions_outputs -> data/demo_outputs`
@@ -72,7 +72,7 @@ CSVExtractorProyectV2/
 ### Flujo completo automatizado
 
 ```powershell
-python src/main.py --all
+python -m src.main --all
 ```
 
 ### Opciones principales
@@ -88,7 +88,7 @@ python src/main.py --all
 
 ### Ejemplo de uso avanzado
 ```powershell
-python src/main.py --all --overwrite --test --wait-timeout 15
+python -m src.main.py --all --overwrite --test --wait-timeout 15
 ```
 
 ---
@@ -142,7 +142,7 @@ archivo resumen en Excel con toda esa información.
 - **¿Puedo reanudar si se corta la luz o hay un error?**
   Sí, ejecuta el mismo comando con `--resume` y el sistema continuará donde se detuvo.
 - **¿Cómo limpio los logs y el estado para empezar de cero?**
-  Ejecuta: `python src/main.py --clean-logs`
+  Ejecuta: `python -m src.main.py --clean-logs`
 - **¿Puedo personalizar el scraping?**
   Sí, ajusta los parámetros por CLI o edita la configuración en `/config/txt_config/`.
 
