@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--overwrite', action='store_true', help='Sobrescribir archivos ya procesados')
     parser.add_argument('--resume', action='store_true', help='Reanudar etapas incompletas')
     parser.add_argument('--clean-logs', action='store_true', help='Borra todos los archivos de la carpeta logs/')
+    parser.add_argument('--wait-timeout', type=int, default=10, help='Timeout de espera por página (segundos)')
     args = parser.parse_args()
 
     if args.clean_logs:
@@ -57,7 +58,8 @@ def main():
         run_extraction(
             overwrite=args.overwrite or args.all,
             test_mode=args.test,
-            resume=args.resume
+            resume=args.resume,
+            wait_timeout=args.wait_timeout
         )
 
     if args.all or args.exclude:
