@@ -55,7 +55,7 @@ for workers in worker_options:
         with ThreadPoolExecutor(max_workers=workers) as executor:
             for url in test_urls:
                 # Crear un driver por tarea y almacenarlo para cierre
-                drv = setup_driver()
+                drv = setup_driver(headless=True)
                 drivers.append(drv)
                 futures.append(
                     executor.submit(run_once, url, wait_timeout, drv)

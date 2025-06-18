@@ -27,7 +27,7 @@ def extract_essential_social_links_from_url(
 
     driver_created = False
     if driver is None:
-        driver = setup_driver()
+        driver = setup_driver(headless=True)
         driver_created = True
 
     try:
