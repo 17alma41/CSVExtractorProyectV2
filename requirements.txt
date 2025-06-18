@@ -10,3 +10,4 @@ openpyxl
 psutil
 matplotlib
 Pillow
+fake_useragent

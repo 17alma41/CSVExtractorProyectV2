@@ -1,4 +1,5 @@
 import time
+import logging
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -30,6 +31,7 @@ def extract_essential_social_links_from_url(
         driver_created = True
 
     try:
+        logging.info(f"Iniciando extracción de redes sociales para URL: {url}")
         print(f"\n🌐 Procesando URL: {url}")
         print("⏳ Cargando página...")
         driver.get(url)
@@ -83,6 +85,7 @@ def extract_essential_social_links_from_url(
         else:
             print(f"ℹ️ No se encontraron redes sociales en {url}")
 
+        logging.info(f"Redes sociales extraídas: {found}")
         return {k: v for k, v in found.items() if v}
 
     except TimeoutException:
@@ -90,6 +93,7 @@ def extract_essential_social_links_from_url(
         return {}
     except Exception as e:
         print(f"❌ Error al extraer redes sociales de {url}: {e}")
+        logging.error(f"Error extrayendo redes sociales de {url}: {e}")
         return {}
     finally:
         if driver_created:

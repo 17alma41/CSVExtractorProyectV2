@@ -18,12 +18,15 @@ from src.settings import (
     BASE_DIR, INPUTS_DIR, OUTPUTS_DIR, CLEAN_INPUTS_DIR, TXT_CONFIG_DIR, LOGS_DIR, HOJA_DATA
 )
 from src.utils.status_manager import load_status, save_status, update_status, get_next_scraping_index, is_stage_done, log_error
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.edge.options import Options as EdgeOptions
-from selenium.webdriver.chrome.options import Options as ChromeOptions
 from fake_useragent import UserAgent
+from selenium import webdriver
+import random
 
 # Logging
 logging.basicConfig(
@@ -36,6 +39,8 @@ logging.basicConfig(
 thread_local = threading.local()
 DRIVERS = []
 
+# Restaurar configuración original del driver
+
 def _shared_setup_driver(browser="chrome", proxy=None):
     """Configura el driver del navegador con soporte para múltiples navegadores y rotación de User-Agent."""
     user_agent = UserAgent().random  # Generar un User-Agent aleatorio
@@ -44,7 +49,7 @@ def _shared_setup_driver(browser="chrome", proxy=None):
         options.add_argument(f"--user-agent={user_agent}")
         if proxy:
             options.add_argument(f"--proxy-server={proxy}")
-        return webdriver.Chrome(service=Service(CHROMEDRIVER_PATH), options=options)
+        return webdriver.Chrome(service=ChromeService(), options=options)
     elif browser == "firefox":
         options = FirefoxOptions()
         options.set_preference("general.useragent.override", user_agent)
@@ -99,10 +104,16 @@ def procesar_sitio(row, wait_timeout=10):
     try:
         raw = row.get('website', '')
         if pd.isna(raw) or not isinstance(raw, str):
+            logging.warning(f"Fila ignorada: columna 'website' vacía o no válida. Fila: {row}")
             return {**row, 'email':'', 'facebook':'', 'instagram':'', 'linkedin':'', 'x':''}
         url = raw.strip()
+
+        # Intentar corregir URLs que no comiencen con http:// o https://
         if not url.lower().startswith(('http://', 'https://')):
-            return {**row, 'email':'', 'facebook':'', 'instagram':'', 'linkedin':'', 'x':''}
+            url = f"http://{url}"
+
+        logging.info(f"Procesando URL: {url}")
+
         emails = extract_emails_from_url(
             url,
             modo_verificacion=EMAIL_VERIFICATION_MODE,
@@ -144,7 +155,12 @@ def procesar_archivo(nombre_archivo, modo_prueba=False, max_workers=None, wait_t
     df = pd.read_csv(path_in)
     if 'website' not in df.columns:
         return
-    df.drop(columns=[c for c in COLUMNAS_A_ELIMINAR if c in df.columns], inplace=True)
+    # Registrar más detalles sobre las columnas eliminadas
+    logging.info(f"Columnas en el archivo original: {list(df.columns)}")
+    logging.info(f"Columnas a eliminar (configuración): {COLUMNAS_A_ELIMINAR}")
+    columnas_a_eliminar = [c for c in COLUMNAS_A_ELIMINAR if c in df.columns]
+    logging.info(f"Columnas eliminadas: {columnas_a_eliminar}")
+    df.drop(columns=columnas_a_eliminar, inplace=True)
     if modo_prueba:
         df = df.head(20)
     rows = df.to_dict(orient='records')
@@ -163,16 +179,23 @@ def procesar_archivo(nombre_archivo, modo_prueba=False, max_workers=None, wait_t
         return {**row, 'email':'', 'facebook':'', 'instagram':'', 'linkedin':'', 'x':''}
     workers = max_workers if max_workers else get_optimal_workers()
     urls_procesadas = 0
+    # Agregar más registros de log en procesar_archivo
+    logging.info(f"Procesando archivo: {nombre_archivo}")
+    logging.info(f"Número de filas a procesar: {len(rows)}")
     with ThreadPoolExecutor(max_workers=workers, initializer=_init_thread_driver) as executor:
         futures = {executor.submit(process_with_retry, row, idx): idx for idx, row in enumerate(rows[start_idx:], start=start_idx)}
+        # Dentro del bucle de procesamiento
         for future in as_completed(futures):
             try:
-                resultados.append(future.result())
+                resultado = future.result()
+                logging.info(f"Resultado procesado: {resultado}")
+                resultados.append(resultado)
                 urls_procesadas += 1
                 if urls_procesadas % MAX_URLS_PER_SESSION == 0:
+                    logging.info("Reiniciando sesión del navegador después de procesar 50 URLs.")
                     reiniciar_sesion()
             except Exception as e:
-                print(f"[ERROR] Excepción en scraping: {e}")
+                logging.error(f"Error en el procesamiento de una fila: {e}")
     for drv in DRIVERS:
         try:
             drv.quit()

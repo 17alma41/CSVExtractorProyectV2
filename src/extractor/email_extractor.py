@@ -3,6 +3,7 @@ from pathlib import Path
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+import logging
 
 from .utils import setup_driver
 from .email_verifier import verificar_existencia_email, determinar_estado
@@ -23,6 +24,7 @@ def extract_emails_from_url(
 
     Retorna lista de emails válidos.
     """
+    logging.info(f"Iniciando extracción de emails para URL: {url}")
     if not url or not isinstance(url, str) or not url.lower().startswith(('http://', 'https://')):
         print(f"⚠️ URL inválida, saltando: {url}")
         return []
@@ -53,10 +55,12 @@ def extract_emails_from_url(
             if estado == 'Válido':
                 valid_emails.append(e)
 
+        logging.info(f"Emails extraídos: {valid_emails}")
         print(f"🔍 {url} → Emails extraídos: {valid_emails}")
         return valid_emails
 
     except Exception as e:
+        logging.error(f"Error extrayendo emails de {url}: {e}")
         print(f"❌ Error en {url}: {e}")
         return []
 
