@@ -18,6 +18,12 @@ from src.settings import (
     BASE_DIR, INPUTS_DIR, OUTPUTS_DIR, CLEAN_INPUTS_DIR, TXT_CONFIG_DIR, LOGS_DIR, HOJA_DATA
 )
 from src.utils.status_manager import load_status, save_status, update_status, get_next_scraping_index, is_stage_done, log_error
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.edge.options import Options as EdgeOptions
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from fake_useragent import UserAgent
 
 # Logging
 logging.basicConfig(
@@ -30,13 +36,44 @@ logging.basicConfig(
 thread_local = threading.local()
 DRIVERS = []
 
-def _init_thread_driver():
-    drv = _shared_setup_driver()
+def _shared_setup_driver(browser="chrome", proxy=None):
+    """Configura el driver del navegador con soporte para múltiples navegadores y rotación de User-Agent."""
+    user_agent = UserAgent().random  # Generar un User-Agent aleatorio
+    if browser == "chrome":
+        options = ChromeOptions()
+        options.add_argument(f"--user-agent={user_agent}")
+        if proxy:
+            options.add_argument(f"--proxy-server={proxy}")
+        return webdriver.Chrome(service=Service(CHROMEDRIVER_PATH), options=options)
+    elif browser == "firefox":
+        options = FirefoxOptions()
+        options.set_preference("general.useragent.override", user_agent)
+        if proxy:
+            options.set_preference("network.proxy.type", 1)
+            options.set_preference("network.proxy.http", proxy.split(":")[0])
+            options.set_preference("network.proxy.http_port", int(proxy.split(":")[1]))
+        return webdriver.Firefox(service=FirefoxService(), options=options)
+    elif browser == "edge":
+        options = EdgeOptions()
+        options.add_argument(f"--user-agent={user_agent}")
+        if proxy:
+            options.add_argument(f"--proxy-server={proxy}")
+        return webdriver.Edge(service=EdgeService(), options=options)
+    else:
+        raise ValueError("Navegador no soportado. Use 'chrome', 'firefox' o 'edge'.")
+
+# Modificar _init_thread_driver para aceptar múltiples navegadores y proxies
+
+def _init_thread_driver(browser="chrome", proxy=None):
+    drv = _shared_setup_driver(browser=browser, proxy=proxy)
+    drv.set_page_load_timeout(30)  # Configurar timeout de carga de página
+    drv.implicitly_wait(10)  # Configurar espera implícita
     thread_local.driver = drv
     DRIVERS.append(drv)
 
 EMAIL_VERIFICATION_MODE = "avanzado"
 MAX_WORKERS = 4
+MAX_URLS_PER_SESSION = 50  # Reiniciar navegador después de procesar 50 URLs
 
 def cargar_lista_desde_txt(nombre_archivo):
     ruta = TXT_CONFIG_DIR / nombre_archivo
@@ -89,6 +126,16 @@ def procesar_sitio(row, wait_timeout=10):
         logging.error(f"Error procesando sitio {row.get('website')}: {e}")
         return {**row, 'email':'', 'facebook':'', 'instagram':'', 'linkedin':'', 'x':''}
 
+def reiniciar_sesion():
+    """Cierra y reinicia la sesión del navegador."""
+    try:
+        if hasattr(thread_local, 'driver'):
+            thread_local.driver.quit()
+    except Exception as e:
+        logging.error(f"Error cerrando sesión del navegador: {e}")
+    finally:
+        _init_thread_driver()
+
 def procesar_archivo(nombre_archivo, modo_prueba=False, max_workers=None, wait_timeout=10, resume=False):
     path_in  = CLEAN_INPUTS_DIR / nombre_archivo
     path_out = OUTPUTS_DIR / nombre_archivo
@@ -115,18 +162,22 @@ def procesar_archivo(nombre_archivo, modo_prueba=False, max_workers=None, wait_t
                 time.sleep(2)
         return {**row, 'email':'', 'facebook':'', 'instagram':'', 'linkedin':'', 'x':''}
     workers = max_workers if max_workers else get_optimal_workers()
+    urls_procesadas = 0
     with ThreadPoolExecutor(max_workers=workers, initializer=_init_thread_driver) as executor:
         futures = {executor.submit(process_with_retry, row, idx): idx for idx, row in enumerate(rows[start_idx:], start=start_idx)}
         for future in as_completed(futures):
             try:
                 resultados.append(future.result())
+                urls_procesadas += 1
+                if urls_procesadas % MAX_URLS_PER_SESSION == 0:
+                    reiniciar_sesion()
             except Exception as e:
                 print(f"[ERROR] Excepción en scraping: {e}")
     for drv in DRIVERS:
         try:
             drv.quit()
-        except Exception:
-            pass
+        except Exception as e:
+            logging.error(f"Error cerrando driver: {e}")
     df_res = pd.DataFrame(resultados)
     print(f"[DEBUG] DataFrame de resultados generado con {len(df_res)} filas.")
     if RENOMBRAR_COLUMNAS:
@@ -143,7 +194,7 @@ def procesar_archivo(nombre_archivo, modo_prueba=False, max_workers=None, wait_t
         print(f"[WARNING] DataFrame vacío, no se genera archivo para {nombre_archivo}")
     update_status(nombre_archivo, 'scraping_index', 0)  # Reset index
 
-def run_extraction(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10, resume=False, single_file=None):
+def run_extraction(overwrite=False, test_mode=False, max_workers=None, wait_timeout=10, resume=False, single_file=None, browser="chrome", proxy_list=None):
     """
     Ejecuta el proceso de extracción de datos web.
     Si single_file está definido, solo procesa ese archivo.
@@ -162,6 +213,8 @@ def run_extraction(overwrite=False, test_mode=False, max_workers=None, wait_time
                 print(f"[SKIP] {nombre} ya scrapeado.")
                 continue
             print(f"\n▶️ Procesando: {nombre}")
+            proxy = random.choice(proxy_list) if proxy_list else None
+            _init_thread_driver(browser=browser, proxy=proxy)
             procesar_archivo(nombre, modo_prueba=test_mode, max_workers=workers, wait_timeout=wait_timeout, resume=resume)
             update_status(nombre, 'scraped', True)
         except KeyboardInterrupt:
